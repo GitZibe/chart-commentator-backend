@@ -18,29 +18,57 @@ app.get("/", (req, res) => {
 });
 
 // -------------------------------------------------------
-// FETCH NEWS CONTEXT
+// FETCH REAL NEWS via NewsAPI
 // -------------------------------------------------------
 async function fetchNews(symbol) {
   try {
-    const symbolMap = {
-      "NQ1!": "Nasdaq 100 futures",
-      "ES1!": "S&P 500 futures",
-      "MGC1!": "Micro Gold futures",
-      "GC1!": "Gold futures",
-      "CL1!": "Crude Oil futures",
-      "EURUSD": "Euro Dollar forex",
+    const NEWS_API_KEY = process.env.NEWS_API_KEY || "3af3dd65947c4a6e8e7d6ddbfc79ed6a";
+
+    const queryMap = {
+      "NQ1!": "Nasdaq futures OR tech stocks",
+      "ES1!": "S&P 500 futures OR stock market",
+      "MGC1!": "gold price OR gold futures",
+      "GC1!": "gold price OR gold futures",
+      "CL1!": "crude oil price OR oil futures",
+      "EURUSD": "euro dollar forex",
     };
-    const name = symbolMap[symbol] || symbol;
-    const response = await anthropic.messages.create({
+    const query = queryMap[symbol] || symbol.replace("1!", "");
+
+    const url = `https://newsapi.org/v2/everything?q=${encodeURIComponent(query)}&sortBy=publishedAt&pageSize=3&language=en&apiKey=${NEWS_API_KEY}`;
+
+    const newsData = await new Promise((resolve, reject) => {
+      https.get(url, (res) => {
+        let data = "";
+        res.on("data", chunk => data += chunk);
+        res.on("end", () => {
+          try { resolve(JSON.parse(data)); }
+          catch (e) { reject(e); }
+        });
+      }).on("error", reject);
+    });
+
+    if (!newsData.articles || newsData.articles.length === 0) return null;
+
+    // Take top 2 headlines
+    const headlines = newsData.articles
+      .slice(0, 2)
+      .map(a => a.title)
+      .filter(Boolean)
+      .join(" | ");
+
+    // Use Claude to summarize into 1 clean sentence
+    const summary = await anthropic.messages.create({
       model: "claude-opus-4-5",
-      max_tokens: 150,
+      max_tokens: 100,
       messages: [{
         role: "user",
-        content: `What are the top macro factors and news driving ${name} price action right now in May 2026? Give 1-2 sentences of the most important things. Be specific, no disclaimers, talk like a trader.`
+        content: `Summarize these news headlines into 1 sentence of what matters for ${symbol} traders right now. Be direct, no fluff: "${headlines}"`
       }]
     });
-    return response.content[0].text.replace(/\*\*/g, "").trim();
+
+    return summary.content[0].text.replace(/\*\*/g, "").trim();
   } catch (e) {
+    console.error("News fetch error:", e.message);
     return null;
   }
 }
