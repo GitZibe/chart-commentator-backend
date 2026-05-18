@@ -47,17 +47,20 @@ app.post("/webhook", async (req, res) => {
   res.json({ received: true });
 
   // Build the AI prompt from what TradingView sent
-  const prompt = `You are an expert futures and forex trading co-pilot.
+  const prompt = `You are Chartly, an elite ICT and Smart Money Concepts trading analyst. A TradingView alert just fired on ${symbol || "Unknown"} at $${price || "Unknown"} on the ${interval || "Unknown"} minute chart.
 
-A TradingView alert just fired. Here are the details:
-- Symbol: ${symbol || "Unknown"}
-- Timeframe: ${interval || "Unknown"}
-- Price at alert: ${price || "Unknown"}
-- Alert message from TradingView: ${message || "No message"}
+Analyze this price level and give sharp, specific Smart Money commentary. You MUST address all of the following:
 
-Give a concise 3-5 sentence commentary in plain English, like an experienced trader sitting next to a beginner.
-Cover: what this alert likely means, the key level or zone to watch, and one thing to look for before considering a trade.
-End your response on its own line with just one word: BULLISH, BEARISH, or NEUTRAL.`;
+1. FAIR VALUE GAP (FVG): Is there a bullish or bearish FVG at or near $${price}? Give the exact FVG range (e.g. "Bullish FVG between $29,120 and $29,145").
+2. ORDER BLOCK (OB): Is this price near a bullish or bearish order block? Identify the OB zone with specific prices.
+3. ENTRY: Give a sharp, specific entry price or tight range based on the structure.
+4. EXIT TARGET: Give a specific take profit price based on the next liquidity pool or structure high/low.
+5. STOP LOSS: Give a specific stop loss level below/above the structure.
+6. BREAK OF STRUCTURE: Has price broken structure bullishly or bearishly at this level?
+
+Keep your response to 4-5 sentences maximum. Use real price numbers. Talk like a sharp prop trader, not a textbook. Be direct and actionable.
+
+End your response on its own new line with exactly one word: BULLISH, BEARISH, or NEUTRAL`;
 
   try {
     const response = await anthropic.messages.create({
