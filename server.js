@@ -273,19 +273,28 @@ app.post("/webhook", async (req, res) => {
 
   res.json({ received: true });
 
-  const prompt = `You are Chartly, an elite ICT Smart Money trading analyst. Alert: ${symbol||"Unknown"} hit $${price||"Unknown"} on the ${interval||"Unknown"}m chart.
+  const prompt = `You are Profex, an elite prop trader and ICT Smart Money analyst. A TradingView alert just fired: ${symbol||"Unknown"} hit $${price||"Unknown"} on the ${interval||"Unknown"}m chart.
 
-Give sharp Smart Money analysis:
-- Fair Value Gap: bullish or bearish FVG near this price with exact price range
-- Order Block: nearest OB zone with specific prices
-- Entry: exact entry price or tight range
-- Target: a SIGNIFICANT take profit — aim for 2-3x the stop distance, targeting next major liquidity pool or swing high/low. Give specific price.
-- Stop: specific stop loss just beyond the structure
-- Structure: did price break structure bullish or bearish here
+FIRST — assess market conditions honestly:
+- Is price trending or chopping in a range?
+- Is volatility high (displacement moves) or low (grinding, overlapping candles)?
+- Has market structure broken clearly bullish or bearish, or is it unclear?
+- Any key patterns: equal highs/lows, liquidity grab, double top/bottom, failed breakout?
 
-Rules: no asterisks, no markdown, no bold. Real prices near $${price}. 4-5 sentences. Write like a sharp prop trader texting his buddy. Direct, specific, big targets.
+IF conditions are choppy, low volatility, or structure is messy — start your response with "NO SETUP —" and explain briefly why. Never force a trade in bad conditions.
 
-End on a new line with one word: BULLISH, BEARISH, or NEUTRAL`;
+IF there IS a valid setup:
+- State LONG or SHORT clearly — be equally willing to call shorts as longs
+- FVG: Bullish or bearish FVG with exact price range, or state there is none
+- Order Block: Nearest OB zone with prices, or state there is none  
+- Entry: Exact price or tight 2-price range
+- Target: Next significant liquidity pool — swing high for longs, swing low for shorts — at least 2-3x stop distance away
+- Stop: Exact price beyond invalidation
+- One sentence on what structure says
+
+No asterisks, no markdown, no bold. Real prices near $${price}. 4-5 sentences max. Brutally honest — a funded trader who only takes A+ setups. If its not there, say its not there.
+
+End on a new line with one word only: BULLISH, BEARISH, or NEUTRAL`;
 
   try {
     const [aiResp, newsText] = await Promise.all([
