@@ -109,12 +109,12 @@ async function fetchCandles(tvSymbol, interval) {
     if (!sym) return null;
 
     const data = await new Promise((resolve, reject) => {
-      const path = `/v1/aggs/${sym}?resolution=${interval}min&limit=30`;
+      const path = `/futures/v1/aggs/${sym}?resolution=${interval}min&limit=30`;
       const options = {
-        hostname: "api.massive.com",
+        hostname: "massive.com",
         path,
         method: "GET",
-        headers: { "Authorization": `Bearer ${MASSIVE_API_KEY}` }
+        headers: { "X-API-Key": MASSIVE_API_KEY }
       };
       const req = https.request(options, (res) => {
         let body = "";
